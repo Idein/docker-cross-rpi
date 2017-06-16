@@ -65,3 +65,5 @@ RUN mkdir armv8-rpi3-linux-gnueabihf \
  && cd .. \
  && rm -rf armv8-rpi3-linux-gnueabihf
 ENV PATH $HOME/x-tools/armv8-rpi3-linux-gnueabihf/bin:$PATH
+
+RUN echo "export PATH=$PATH" >> /home/idein/.bashrc
