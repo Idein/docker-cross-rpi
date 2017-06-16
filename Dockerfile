@@ -5,10 +5,12 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update \
  && apt-get upgrade -y \
  && apt-get install -y --no-install-recommends \
-      sudo git wget curl gcc g++ autoconf automake libtool build-essential \
-      gperf bison flex texinfo bzip2 xz-utils help2man gawk \
-      make libncurses5-dev python python-dev python3 \
-      python3-dev htop apt-utils locales ca-certificates \
+      sudo git wget curl \
+      gcc g++ cmake autoconf automake libtool build-essential pkg-config \
+      gperf bison flex texinfo bzip2 xz-utils help2man gawk make libncurses5-dev \
+      python python-dev python-pip \
+      python3 python3-dev python3-pip \
+      htop apt-utils locales ca-certificates \
  && apt-get clean && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 
 WORKDIR /tmp
