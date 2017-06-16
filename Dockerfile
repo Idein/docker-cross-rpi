@@ -45,6 +45,7 @@ CMD ["/bin/bash"]
 RUN mkdir armv6-rpi-linux-gnueabi \
  && cd armv6-rpi-linux-gnueabi \
  && ct-ng armv6-rpi-linux-gnueabi \
+ && sed 's/^# CT_CC_GCC_LIBGOMP is not set/CT_CC_GCC_LIBGOMP=y/' -i .config \
  && ct-ng build \
  && cd .. \
  && rm -rf armv6-rpi-linux-gnueabi
@@ -53,6 +54,7 @@ ENV PATH $HOME/x-tools/armv6-rpi-linux-gnueabi/bin:$PATH
 RUN mkdir armv7-rpi2-linux-gnueabihf \
  && cd armv7-rpi2-linux-gnueabihf \
  && ct-ng armv7-rpi2-linux-gnueabihf \
+ && sed 's/^# CT_CC_GCC_LIBGOMP is not set/CT_CC_GCC_LIBGOMP=y/' -i .config \
  && ct-ng build \
  && cd .. \
  && rm -rf armv7-rpi2-linux-gnueabihf
@@ -61,6 +63,7 @@ ENV PATH $HOME/x-tools/armv7-rpi2-linux-gnueabihf/bin:$PATH
 RUN mkdir armv8-rpi3-linux-gnueabihf \
  && cd armv8-rpi3-linux-gnueabihf \
  && ct-ng armv8-rpi3-linux-gnueabihf \
+ && sed 's/^# CT_CC_GCC_LIBGOMP is not set/CT_CC_GCC_LIBGOMP=y/' -i .config \
  && ct-ng build \
  && cd .. \
  && rm -rf armv8-rpi3-linux-gnueabihf
