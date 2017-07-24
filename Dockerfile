@@ -44,15 +44,19 @@ ENV PATH /home/idein/.local/bin:$PATH
 RUN echo "export PATH=$PATH" >> /home/idein/.bashrc
 CMD ["/bin/bash"]
 
-RUN mkdir armv6-rpi-linux-gnueabi \
- && cd armv6-rpi-linux-gnueabi \
+RUN mkdir armv6-rpi-linux-gnueabihf \
+ && cd armv6-rpi-linux-gnueabihf \
  && ct-ng armv6-rpi-linux-gnueabi \
+ && sed 's/^CT_ARCH_FLOAT_AUTO/# CT_ARCH_FLOAT_AUTO/' -i .config \
+ && sed 's/^# CT_ARCH_FLOAT_HW is not set/CT_ARCH_FLOAT_HW=y/' -i .config \
+ && sed 's/^CT_ARCH_FLOAT="auto"/CT_ARCH_FLOAT="hard"/' -i .config \
+ && echo 'CT_ARCH_ARM_TUPLE_USE_EABIHF=y' >> .config \
  && sed 's/^# CT_CC_GCC_LIBGOMP is not set/CT_CC_GCC_LIBGOMP=y/' -i .config \
  && sed 's/CT_LOG_PROGRESS_BAR/# CT_LOG_PROGRESS_BAR/' -i .config \
  && ct-ng build \
  && cd .. \
- && rm -rf armv6-rpi-linux-gnueabi
-ENV PATH $HOME/x-tools/armv6-rpi-linux-gnueabi/bin:$PATH
+ && rm -rf armv6-rpi-linux-gnueabihf
+ENV PATH $HOME/x-tools/armv6-rpi-linux-gnueabihf/bin:$PATH
 
 RUN mkdir armv7-rpi2-linux-gnueabihf \
  && cd armv7-rpi2-linux-gnueabihf \
