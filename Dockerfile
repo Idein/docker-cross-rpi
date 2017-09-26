@@ -41,7 +41,6 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 ENV PATH /home/idein/.local/bin:$PATH
-RUN echo "export PATH=$PATH" >> /home/idein/.bashrc
 CMD ["/bin/bash"]
 
 RUN mkdir armv6-rpi-linux-gnueabihf \
@@ -58,4 +57,3 @@ RUN mkdir armv6-rpi-linux-gnueabihf \
  && rm -rf armv6-rpi-linux-gnueabihf
 ENV PATH $HOME/x-tools/armv6-rpi-linux-gnueabihf/bin:$PATH
 
-RUN echo "export PATH=$PATH" >> /home/idein/.bashrc
