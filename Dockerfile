@@ -57,3 +57,6 @@ RUN mkdir armv6-rpi-linux-gnueabihf \
  && rm -rf armv6-rpi-linux-gnueabihf
 ENV PATH $HOME/x-tools/armv6-rpi-linux-gnueabihf/bin:$PATH
 
+# cross compilation with rust
+ENV CC_arm_unknown_linux_gnueabihf armv6-rpi-linux-gnueabihf-gcc
+
