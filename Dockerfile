@@ -1,4 +1,4 @@
-FROM debian:jessie
+FROM debian:stretch
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -59,4 +59,3 @@ ENV PATH $HOME/x-tools/armv6-rpi-linux-gnueabihf/bin:$PATH
 
 # cross compilation with rust
 ENV CC_arm_unknown_linux_gnueabihf armv6-rpi-linux-gnueabihf-gcc
-
