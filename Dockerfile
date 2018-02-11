@@ -78,4 +78,16 @@ RUN mkdir armv8-rpi3-linux-gnueabihf \
  && rm -rf armv8-rpi3-linux-gnueabihf
 ENV PATH $HOME/x-tools/armv8-rpi3-linux-gnueabihf/bin:$PATH
 
+RUN mkdir aarch64-rpi3-linux-gnueabihf \
+ && cd aarch64-rpi3-linux-gnueabihf \
+ && ct-ng aarch64-rpi3-linux-gnueabi \
+ && sed 's/^CT_ARCH_FLOAT="auto"/CT_ARCH_FLOAT="hard"/' -i .config \
+ && echo 'CT_ARCH_ARM_TUPLE_USE_EABIHF=y' >> .config \
+ && sed 's/^# CT_CC_GCC_LIBGOMP is not set/CT_CC_GCC_LIBGOMP=y/' -i .config \
+ && sed 's/CT_LOG_PROGRESS_BAR/# CT_LOG_PROGRESS_BAR/' -i .config \
+ && ct-ng build \
+ && cd .. \
+ && rm -rf aarch64-rpi3-linux-gnueabihf
+ENV PATH $HOME/x-tools/aarch64-rpi3-linux-gnueabihf/bin:$PATH
+
 RUN echo "export PATH=$PATH" >> /home/idein/.bashrc
