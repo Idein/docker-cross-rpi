@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update \
  && apt-get upgrade -y \
  && apt-get install -y --no-install-recommends \
-      sudo git wget curl \
+      sudo git wget curl bc asciidoc xmlto \
       gcc g++ cmake autoconf automake libtool build-essential pkg-config \
       gperf bison flex texinfo bzip2 xz-utils help2man gawk make libncurses5-dev \
       python python-dev python-pip \
