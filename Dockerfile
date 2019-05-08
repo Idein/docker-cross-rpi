@@ -9,8 +9,9 @@ RUN apt-get update \
  && apt-get upgrade -y \
  && apt-get install -y --no-install-recommends \
       sudo git wget curl bc asciidoc xmlto \
-      gcc g++ cmake autoconf automake libtool build-essential pkg-config \
-      gperf bison flex texinfo bzip2 xz-utils help2man gawk make libncurses5-dev \
+      gcc g++ cmake autoconf automake libtool libtool-bin build-essential \
+      pkg-config gperf bison flex texinfo bzip2 unzip xz-utils help2man gawk \
+      make libncurses5-dev \
       python python-dev python-pip \
       python3 python3-dev python3-pip \
       htop apt-utils locales ca-certificates \
@@ -27,14 +28,14 @@ RUN wget -O /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
  && sed -i 's/^Libs:.*$/\0 -lvcos/' /opt/vc/lib/pkgconfig/vcsm.pc \
  && rm /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb /tmp/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb
 
-RUN curl -sLO http://crosstool-ng.org/download/crosstool-ng/crosstool-ng-1.23.0.tar.xz \
- && tar xvJf crosstool-ng-1.23.0.tar.xz \
- && cd crosstool-ng-1.23.0 \
+RUN curl -sLO http://crosstool-ng.org/download/crosstool-ng/crosstool-ng-1.24.0.tar.xz \
+ && tar xJf crosstool-ng-1.24.0.tar.xz \
+ && cd crosstool-ng-1.24.0 \
  && ./configure \
  && make \
  && make install \
  && cd .. \
- && rm -rf crosstool-ng-1.23.0 crosstool-ng-1.23.0.tar.xz
+ && rm -rf crosstool-ng-1.24.0 crosstool-ng-1.24.0.tar.xz
 
 # add idein user
 RUN useradd -m idein \
@@ -57,6 +58,10 @@ ENV PATH /home/idein/.local/bin:$PATH
 RUN echo "export PATH=$PATH" >> /home/idein/.bashrc
 CMD ["/bin/bash"]
 
+# Shorten the name of a temporary directory before removing it for Docker under
+# some configurations so that it can remove deeply-nested directory.
+# See https://github.com/moby/moby/issues/13451
+
 RUN mkdir armv6-rpi-linux-gnueabihf \
  && cd armv6-rpi-linux-gnueabihf \
  && ct-ng armv6-rpi-linux-gnueabi \
@@ -68,7 +73,8 @@ RUN mkdir armv6-rpi-linux-gnueabihf \
  && sed 's/CT_LOG_PROGRESS_BAR/# CT_LOG_PROGRESS_BAR/' -i .config \
  && ct-ng build \
  && cd .. \
- && rm -rf armv6-rpi-linux-gnueabihf
+ && mv armv6-rpi-linux-gnueabihf waste \
+ && rm -rf waste
 ENV PATH $HOME/x-tools/armv6-rpi-linux-gnueabihf/bin:$PATH
 
 RUN mkdir armv7-rpi2-linux-gnueabihf \
@@ -78,7 +84,8 @@ RUN mkdir armv7-rpi2-linux-gnueabihf \
  && sed 's/CT_LOG_PROGRESS_BAR/# CT_LOG_PROGRESS_BAR/' -i .config \
  && ct-ng build \
  && cd .. \
- && rm -rf armv7-rpi2-linux-gnueabihf
+ && mv armv7-rpi2-linux-gnueabihf waste \
+ && rm -rf waste
 ENV PATH $HOME/x-tools/armv7-rpi2-linux-gnueabihf/bin:$PATH
 
 RUN mkdir armv8-rpi3-linux-gnueabihf \
@@ -88,19 +95,20 @@ RUN mkdir armv8-rpi3-linux-gnueabihf \
  && sed 's/CT_LOG_PROGRESS_BAR/# CT_LOG_PROGRESS_BAR/' -i .config \
  && ct-ng build \
  && cd .. \
- && rm -rf armv8-rpi3-linux-gnueabihf
+ && mv armv8-rpi3-linux-gnueabihf waste \
+ && rm -rf waste
 ENV PATH $HOME/x-tools/armv8-rpi3-linux-gnueabihf/bin:$PATH
 
-RUN mkdir aarch64-rpi3-linux-gnueabihf \
- && cd aarch64-rpi3-linux-gnueabihf \
- && ct-ng aarch64-rpi3-linux-gnueabi \
- && sed 's/^CT_ARCH_FLOAT="auto"/CT_ARCH_FLOAT="hard"/' -i .config \
+RUN mkdir aarch64-rpi3-linux-gnuhf \
+ && cd aarch64-rpi3-linux-gnuhf \
+ && ct-ng aarch64-rpi3-linux-gnu \
  && echo 'CT_ARCH_ARM_TUPLE_USE_EABIHF=y' >> .config \
  && sed 's/^# CT_CC_GCC_LIBGOMP is not set/CT_CC_GCC_LIBGOMP=y/' -i .config \
  && sed 's/CT_LOG_PROGRESS_BAR/# CT_LOG_PROGRESS_BAR/' -i .config \
  && ct-ng build \
  && cd .. \
- && rm -rf aarch64-rpi3-linux-gnueabihf
-ENV PATH $HOME/x-tools/aarch64-rpi3-linux-gnueabihf/bin:$PATH
+ && mv aarch64-rpi3-linux-gnuhf waste \
+ && rm -rf waste
+ENV PATH $HOME/x-tools/aarch64-rpi3-linux-gnuhf/bin:$PATH
 
 RUN echo "export PATH=$PATH" >> /home/idein/.bashrc
