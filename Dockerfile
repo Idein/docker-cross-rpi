@@ -11,7 +11,7 @@ RUN apt-get update \
       sudo git wget curl bc asciidoc xmlto \
       gcc g++ cmake autoconf automake libtool libtool-bin build-essential \
       pkg-config gperf bison flex texinfo bzip2 unzip xz-utils help2man gawk \
-      make libncurses5-dev \
+      make libncurses5-dev libssl-dev \
       python python-dev python-pip \
       python3 python3-dev python3-pip \
       htop apt-utils locales ca-certificates \
