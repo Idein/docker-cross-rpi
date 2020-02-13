@@ -1,7 +1,7 @@
-FROM debian:stretch
+FROM debian:buster
 
 ARG RPI_FIRMWARE_BASE_URL='http://archive.raspberrypi.org/debian/pool/main/r/raspberrypi-firmware'
-ARG RPI_FIRMWARE_VERSION='20190401-1'
+ARG RPI_FIRMWARE_VERSION='20200114-1'
 
 ENV DEBIAN_FRONTEND noninteractive
 
