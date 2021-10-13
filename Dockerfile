@@ -17,6 +17,16 @@ RUN apt-get update \
       htop apt-utils locales ca-certificates \
  && apt-get clean && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 
+# Lets Encrypt Root CA expiry (server certificate verification failed): Make sure to remove DST Root CA X3!
+# > https://www.claudiokuenzler.com/blog/1135/lets-encrypt-root-ca-expired-git-server-certificate-verification-failed-x3
+RUN : \
+ # The 'DST' certificate should be included.
+ && awk -v cmd='openssl x509 -noout -subject' '/BEGIN/{close(cmd)};{print | cmd}' < /etc/ssl/certs/ca-certificates.crt | grep -E 'CN = DST Root CA X3' \
+ && sed -i -e 's|mozilla/DST_Root_CA_X3.crt|!&|' /etc/ca-certificates.conf \
+ && update-ca-certificates \
+ # The 'DST' certificate should not be included.
+ && ! awk -v cmd='openssl x509 -noout -subject' '/BEGIN/{close(cmd)};{print | cmd}' < /etc/ssl/certs/ca-certificates.crt | grep -E 'CN = DST Root CA X3'
+
 WORKDIR /tmp
 
 RUN wget -O /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
