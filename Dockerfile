@@ -30,6 +30,8 @@ RUN wget -O /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
 RUN curl -sLO http://crosstool-ng.org/download/crosstool-ng/crosstool-ng-1.24.0.tar.xz \
  && tar xJf crosstool-ng-1.24.0.tar.xz \
  && cd crosstool-ng-1.24.0 \
+ && sed 's|http://isl.gforge.inria.fr|https://libisl.sourceforge.io|' -i config/versions/isl.in \
+ && sed 's|http://downloads.sourceforge.net/project/expat/expat/${CT_EXPAT_VERSION}|https://github.com/libexpat/libexpat/releases/download/R_${CT_EXPAT_VERSION//./_}|' -i config/versions/expat.in \
  && ./configure \
  && make \
  && make install \
