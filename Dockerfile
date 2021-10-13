@@ -30,6 +30,8 @@ RUN wget -O /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
 RUN curl -sLO http://crosstool-ng.org/download/crosstool-ng/crosstool-ng-1.24.0.tar.xz \
  && tar xJf crosstool-ng-1.24.0.tar.xz \
  && cd crosstool-ng-1.24.0 \
+ && sed 's|http://isl.gforge.inria.fr|https://libisl.sourceforge.io|' -i config/versions/isl.in \
+ && sed 's|http://downloads.sourceforge.net/project/expat/expat/${CT_EXPAT_VERSION}|https://github.com/libexpat/libexpat/releases/download/R_${CT_EXPAT_VERSION//./_}|' -i config/versions/expat.in \
  && ./configure \
  && make \
  && make install \
@@ -64,9 +66,6 @@ CMD ["/bin/bash"]
 RUN mkdir armv6-rpi-linux-gnueabihf \
  && cd armv6-rpi-linux-gnueabihf \
  && ct-ng armv6-rpi-linux-gnueabi \
- && sed 's|^CT_ISL_MIRRORS=.*$|CT_ISL_MIRRORS="https://deb.debian.org/debian/pool/main/i/isl/"|' -i .config \
- && sed 's|^CT_ISL_ARCHIVE_FILENAME="@{pkg_name}-@{version}"|CT_ISL_ARCHIVE_FILENAME="@{pkg_name}_@{version}.orig"|' -i .config \
- && sed 's|^CT_EXPAT_MIRRORS=.*$|CT_EXPAT_MIRRORS="https://github.com/libexpat/libexpat/releases/download/R_2_2_6/"|' -i .config \
  && sed 's/^CT_ARCH_FLOAT_AUTO/# CT_ARCH_FLOAT_AUTO/' -i .config \
  && sed 's/^# CT_ARCH_FLOAT_HW is not set/CT_ARCH_FLOAT_HW=y/' -i .config \
  && sed 's/^CT_ARCH_FLOAT="auto"/CT_ARCH_FLOAT="hard"/' -i .config \
@@ -82,9 +81,6 @@ ENV PATH $HOME/x-tools/armv6-rpi-linux-gnueabihf/bin:$PATH
 RUN mkdir armv7-rpi2-linux-gnueabihf \
  && cd armv7-rpi2-linux-gnueabihf \
  && ct-ng armv7-rpi2-linux-gnueabihf \
- && sed 's|^CT_ISL_MIRRORS=.*$|CT_ISL_MIRRORS="https://deb.debian.org/debian/pool/main/i/isl/"|' -i .config \
- && sed 's|^CT_ISL_ARCHIVE_FILENAME="@{pkg_name}-@{version}"|CT_ISL_ARCHIVE_FILENAME="@{pkg_name}_@{version}.orig"|' -i .config \
- && sed 's|^CT_EXPAT_MIRRORS=.*$|CT_EXPAT_MIRRORS="https://github.com/libexpat/libexpat/releases/download/R_2_2_6/"|' -i .config \
  && sed 's/^# CT_CC_GCC_LIBGOMP is not set/CT_CC_GCC_LIBGOMP=y/' -i .config \
  && sed 's/CT_LOG_PROGRESS_BAR/# CT_LOG_PROGRESS_BAR/' -i .config \
  && ct-ng build \
@@ -96,9 +92,6 @@ ENV PATH $HOME/x-tools/armv7-rpi2-linux-gnueabihf/bin:$PATH
 RUN mkdir armv8-rpi3-linux-gnueabihf \
  && cd armv8-rpi3-linux-gnueabihf \
  && ct-ng armv8-rpi3-linux-gnueabihf \
- && sed 's|^CT_ISL_MIRRORS=.*$|CT_ISL_MIRRORS="https://deb.debian.org/debian/pool/main/i/isl/"|' -i .config \
- && sed 's|^CT_ISL_ARCHIVE_FILENAME="@{pkg_name}-@{version}"|CT_ISL_ARCHIVE_FILENAME="@{pkg_name}_@{version}.orig"|' -i .config \
- && sed 's|^CT_EXPAT_MIRRORS=.*$|CT_EXPAT_MIRRORS="https://github.com/libexpat/libexpat/releases/download/R_2_2_6/"|' -i .config \
  && sed 's/^# CT_CC_GCC_LIBGOMP is not set/CT_CC_GCC_LIBGOMP=y/' -i .config \
  && sed 's/CT_LOG_PROGRESS_BAR/# CT_LOG_PROGRESS_BAR/' -i .config \
  && ct-ng build \
@@ -110,9 +103,6 @@ ENV PATH $HOME/x-tools/armv8-rpi3-linux-gnueabihf/bin:$PATH
 RUN mkdir aarch64-rpi3-linux-gnuhf \
  && cd aarch64-rpi3-linux-gnuhf \
  && ct-ng aarch64-rpi3-linux-gnu \
- && sed 's|^CT_ISL_MIRRORS=.*$|CT_ISL_MIRRORS="https://deb.debian.org/debian/pool/main/i/isl/"|' -i .config \
- && sed 's|^CT_ISL_ARCHIVE_FILENAME="@{pkg_name}-@{version}"|CT_ISL_ARCHIVE_FILENAME="@{pkg_name}_@{version}.orig"|' -i .config \
- && sed 's|^CT_EXPAT_MIRRORS=.*$|CT_EXPAT_MIRRORS="https://github.com/libexpat/libexpat/releases/download/R_2_2_6/"|' -i .config \
  && echo 'CT_ARCH_ARM_TUPLE_USE_EABIHF=y' >> .config \
  && sed 's/^# CT_CC_GCC_LIBGOMP is not set/CT_CC_GCC_LIBGOMP=y/' -i .config \
  && sed 's/CT_LOG_PROGRESS_BAR/# CT_LOG_PROGRESS_BAR/' -i .config \
