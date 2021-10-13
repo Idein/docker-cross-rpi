@@ -9,11 +9,15 @@ RUN apt-get update \
  && apt-get upgrade -y \
  && apt-get install -y --no-install-recommends \
       sudo git wget curl bc asciidoc xmlto \
-      gcc g++ cmake autoconf automake libtool libtool-bin build-essential \
+      gcc g++ gcc-9 g++-9 cmake autoconf automake libtool libtool-bin build-essential \
       pkg-config gperf bison flex texinfo bzip2 unzip xz-utils help2man gawk \
       make libncurses5-dev libssl-dev \
       python3 python3-dev python3-pip \
       htop apt-utils locales ca-certificates \
+ && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 9 \
+ && update-alternatives --config gcc \
+ && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 9 \
+ && update-alternatives --config g++ \
  && apt-get clean && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
 
 WORKDIR /tmp
