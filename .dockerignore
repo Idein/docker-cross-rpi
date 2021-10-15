@@ -1,0 +1,4 @@
+*.dockerfile
+*.buildlog
+*.buildlog.tmp
+Makefile
