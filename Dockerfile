@@ -59,7 +59,6 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 ENV PATH /home/idein/.local/bin:$PATH
-RUN echo "export PATH=$PATH" >> /home/idein/.bashrc
 CMD ["/bin/bash"]
 
 # Shorten the name of a temporary directory before removing it for Docker under
@@ -114,5 +113,3 @@ RUN mkdir aarch64-rpi3-linux-gnuhf \
  && mv aarch64-rpi3-linux-gnuhf waste \
  && rm -rf waste
 ENV PATH $HOME/x-tools/aarch64-rpi3-linux-gnuhf/bin:$PATH
-
-RUN echo "export PATH=$PATH" >> /home/idein/.bashrc
