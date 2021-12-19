@@ -2,9 +2,6 @@ ARG DEBIAN_IMAGE_TAG=bullseye
 
 FROM debian:${DEBIAN_IMAGE_TAG} as base
 
-ARG RPI_FIRMWARE_BASE_URL='http://archive.raspberrypi.org/debian/pool/main/r/raspberrypi-firmware'
-ARG RPI_FIRMWARE_VERSION='20200114-1'
-
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
@@ -17,14 +14,6 @@ RUN apt-get update \
       python3 python3-dev python3-pip \
       htop apt-utils locales ca-certificates \
  && apt-get clean && rm -rf /var/cache/apt/archives/* /var/lib/apt/lists/*
-
-RUN wget -O /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
-         ${RPI_FIRMWARE_BASE_URL}/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
- && wget -O /tmp/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
-         ${RPI_FIRMWARE_BASE_URL}/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb \
- && dpkg-deb -x /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb / \
- && dpkg-deb -x /tmp/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb / \
- && rm /tmp/libraspberrypi0_1.${RPI_FIRMWARE_VERSION}_armhf.deb /tmp/libraspberrypi-dev_1.${RPI_FIRMWARE_VERSION}_armhf.deb
 
 # add idein user
 RUN useradd -m idein \
@@ -50,6 +39,9 @@ CMD ["/bin/bash"]
 FROM base AS builder
 
 ARG DEBIAN_FRONTEND=noninteractive
+
+ARG RPI_FIRMWARE_BASE_URL='http://archive.raspberrypi.org/debian/pool/main/r/raspberrypi-userland'
+ARG RPI_FIRMWARE_VERSION='2+git20210928~141951+6e8f786-2'
 
 WORKDIR /tmp
 
@@ -78,6 +70,21 @@ RUN . /etc/os-release \
       && sudo update-alternatives --config g++ \
  ;  fi
 
+# temporarily place Raspberry Pi development files into ~/raspbian-{armhf,arm64}
+# (copied into ~/x-tools/triple/triple/sysroot later)
+RUN curl -sLO "${RPI_FIRMWARE_BASE_URL}/libraspberrypi0_${RPI_FIRMWARE_VERSION}_armhf.deb" \
+ && curl -sLO "${RPI_FIRMWARE_BASE_URL}/libraspberrypi0_${RPI_FIRMWARE_VERSION}_arm64.deb" \
+ && curl -sLO "${RPI_FIRMWARE_BASE_URL}/libraspberrypi-dev_${RPI_FIRMWARE_VERSION}_armhf.deb" \
+ && curl -sLO "${RPI_FIRMWARE_BASE_URL}/libraspberrypi-dev_${RPI_FIRMWARE_VERSION}_arm64.deb" \
+ && dpkg-deb -x "libraspberrypi0_${RPI_FIRMWARE_VERSION}_armhf.deb" "$HOME/raspbian-armhf" \
+ && dpkg-deb -x "libraspberrypi0_${RPI_FIRMWARE_VERSION}_arm64.deb" "$HOME/raspbian-arm64" \
+ && dpkg-deb -x "libraspberrypi-dev_${RPI_FIRMWARE_VERSION}_armhf.deb" "$HOME/raspbian-armhf" \
+ && dpkg-deb -x "libraspberrypi-dev_${RPI_FIRMWARE_VERSION}_arm64.deb" "$HOME/raspbian-arm64" \
+ && rm "libraspberrypi0_${RPI_FIRMWARE_VERSION}_armhf.deb" \
+       "libraspberrypi0_${RPI_FIRMWARE_VERSION}_arm64.deb" \
+       "libraspberrypi-dev_${RPI_FIRMWARE_VERSION}_armhf.deb" \
+       "libraspberrypi-dev_${RPI_FIRMWARE_VERSION}_arm64.deb"
+
 
 FROM builder AS armv6-builder
 
@@ -92,7 +99,9 @@ RUN mkdir armv6-rpi-linux-gnueabihf \
  && sed 's/CT_LOG_PROGRESS_BAR/# CT_LOG_PROGRESS_BAR/' -i .config \
  && ct-ng build \
  && cd .. \
- && rm -rf armv6-rpi-linux-gnueabihf
+ && rm -rf armv6-rpi-linux-gnueabihf \
+ && find "$HOME/x-tools/armv6-rpi-linux-gnueabihf/armv6-rpi-linux-gnueabihf/sysroot/" -exec chmod 'u=rwX,go=rX' {} \; \
+ && cp -a "$HOME/raspbian-armhf/." "$HOME/x-tools/armv6-rpi-linux-gnueabihf/armv6-rpi-linux-gnueabihf/sysroot/"
 
 FROM base AS armv6
 
@@ -109,7 +118,9 @@ RUN mkdir armv7-rpi2-linux-gnueabihf \
  && sed 's/CT_LOG_PROGRESS_BAR/# CT_LOG_PROGRESS_BAR/' -i .config \
  && ct-ng build \
  && cd .. \
- && rm -rf armv7-rpi2-linux-gnueabihf
+ && rm -rf armv7-rpi2-linux-gnueabihf \
+ && find "$HOME/x-tools/armv7-rpi2-linux-gnueabihf/armv7-rpi2-linux-gnueabihf/sysroot/" -exec chmod 'u=rwX,go=rX' {} \; \
+ && cp -a "$HOME/raspbian-armhf/." "$HOME/x-tools/armv7-rpi2-linux-gnueabihf/armv7-rpi2-linux-gnueabihf/sysroot/"
 
 FROM base AS armv7
 
@@ -126,7 +137,9 @@ RUN mkdir armv8-rpi3-linux-gnueabihf \
  && sed 's/CT_LOG_PROGRESS_BAR/# CT_LOG_PROGRESS_BAR/' -i .config \
  && ct-ng build \
  && cd .. \
- && rm -rf armv8-rpi3-linux-gnueabihf
+ && rm -rf armv8-rpi3-linux-gnueabihf \
+ && find "$HOME/x-tools/armv8-rpi3-linux-gnueabihf/armv8-rpi3-linux-gnueabihf/sysroot/" -exec chmod 'u=rwX,go=rX' {} \; \
+ && cp -a "$HOME/raspbian-armhf/." "$HOME/x-tools/armv8-rpi3-linux-gnueabihf/armv8-rpi3-linux-gnueabihf/sysroot/"
 
 FROM base AS armv8
 
@@ -144,7 +157,9 @@ RUN mkdir aarch64-rpi3-linux-gnuhf \
  && sed 's/CT_LOG_PROGRESS_BAR/# CT_LOG_PROGRESS_BAR/' -i .config \
  && ct-ng build \
  && cd .. \
- && rm -rf aarch64-rpi3-linux-gnuhf
+ && rm -rf aarch64-rpi3-linux-gnuhf \
+ && find "$HOME/x-tools/aarch64-rpi3-linux-gnuhf/aarch64-rpi3-linux-gnuhf/sysroot/" -exec chmod 'u=rwX,go=rX' {} \; \
+ && cp -a "$HOME/raspbian-arm64/." "$HOME/x-tools/aarch64-rpi3-linux-gnuhf/aarch64-rpi3-linux-gnuhf/sysroot/"
 
 FROM base AS aarch64
 
