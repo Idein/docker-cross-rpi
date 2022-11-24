@@ -19,6 +19,8 @@ build-worker: docker-worker/Dockerfile
 	docker build -t worker docker-worker/
 
 cache/armv6-rpi-linux-gnueabihf_${ARCH}.tar.xz: scripts/build_armv6-rpi-linux-gnueabihf.bash
+	mkdir -p cache
+	chmod o+w cache/
 	docker run -it --rm \
 		-v ${PWD}:/work \
 		worker \
@@ -30,6 +32,8 @@ cache/armv6-rpi-linux-gnueabihf_${ARCH}.tar.xz: scripts/build_armv6-rpi-linux-gn
 	mv cache/armv6-rpi-linux-gnueabihf.tar.xz cache/armv6-rpi-linux-gnueabihf_${ARCH}.tar.xz
 
 cache/armv7-rpi2-linux-gnueabihf_${ARCH}.tar.xz: scripts/build_armv7-rpi2-linux-gnueabihf.bash
+	mkdir -p cache
+	chmod o+w cache/
 	docker run -it --rm \
 		-v ${PWD}:/work \
 		worker \
@@ -41,6 +45,8 @@ cache/armv7-rpi2-linux-gnueabihf_${ARCH}.tar.xz: scripts/build_armv7-rpi2-linux-
 	mv cache/armv7-rpi2-linux-gnueabihf.tar.xz cache/armv7-rpi2-linux-gnueabihf_${ARCH}.tar.xz
 
 cache/armv8-rpi3-linux-gnueabihf_${ARCH}.tar.xz: scripts/build_armv8-rpi3-linux-gnueabihf.bash
+	mkdir -p cache
+	chmod o+w cache/
 	docker run -it --rm \
 		-v ${PWD}:/work \
 		worker \
@@ -52,6 +58,8 @@ cache/armv8-rpi3-linux-gnueabihf_${ARCH}.tar.xz: scripts/build_armv8-rpi3-linux-
 	mv cache/armv8-rpi3-linux-gnueabihf.tar.xz cache/armv8-rpi3-linux-gnueabihf_${ARCH}.tar.xz
 
 cache/aarch64-rpi3-linux-gnuhf_${ARCH}.tar.xz: scripts/build_aarch64-rpi3-linux-gnuhf.bash
+	mkdir -p cache
+	chmod o+w cache/
 	docker run -it --rm \
 		-v ${PWD}:/work \
 		worker \
