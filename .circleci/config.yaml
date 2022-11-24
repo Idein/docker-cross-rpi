@@ -1,0 +1,138 @@
+version: 2.1
+
+jobs:
+  build_toolchain:
+    machine:
+      image: ubuntu-2004:current
+    parameters:
+      resource_class:
+        type: string
+      target:
+        type: string
+    resource_class: << parameters.resource_class >>
+    working_directory: ~/project
+    steps:
+      - checkout
+      - restore_cache:
+          key: << parameters.target >>-{{ arch }}-{{ checksum "docker-worker/Dockerfile" }}-{{ checksum "Makefile" }}-{{ checksum "scripts/build_<< parameters.target >>.bash" }}
+      - run: 
+          command: |
+            export ARCH=$(make show-host-arch)
+            if [ ! -e cache/<< parameters.target >>_${ARCH}.tar.xz ]; then
+              make build-worker
+            else 
+              echo "cache found. skip build process"
+            fi
+      - run:
+          name: build << parameters.target >>
+          command: |
+            export ARCH=$(make show-host-arch)
+            if [ ! -e cache/<< parameters.target >>_${ARCH}.tar.xz ]; then
+              make cache/<< parameters.target >>_${ARCH}.tar.xz
+            else
+              echo "cache found. skip build process"
+            fi
+      - save_cache:
+          key: << parameters.target >>-{{ arch }}-{{ checksum "docker-worker/Dockerfile" }}-{{ checksum "Makefile" }}-{{ checksum "scripts/build_<< parameters.target >>.bash" }}
+          paths:
+            - cache
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - cache
+
+  build_and_test_builder:
+    machine:
+      image: ubuntu-2004:current
+    parameters:
+      resource_class:
+        type: string
+    resource_class: << parameters.resource_class >>
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          command: |
+            export ARCH=$(make show-host-arch)
+            docker buildx build \
+              --load \
+              --platform linux/${ARCH} \
+              --tag idein/cross-rpi:buster-crosstool-ng-1.24.0 .
+      - run:
+          name: check aarch64-rpi3-linux-gnuhf
+          command: |
+            docker run -it --rm idein/cross-rpi:buster-crosstool-ng-1.24.0 /home/idein/x-tools/bin/aarch64-rpi3-linux-gnuhf-gcc -v
+      - run:
+          name: check armv6-rpi-linux-gnueabihf
+          command: |
+            docker run -it --rm idein/cross-rpi:buster-crosstool-ng-1.24.0 /home/idein/x-tools/bin/armv6-rpi-linux-gnueabihf-gcc -v
+      - run:
+          name: check armv7-rpi2-linux-gnueabihf
+          command: |
+            docker run -it --rm idein/cross-rpi:buster-crosstool-ng-1.24.0 /home/idein/x-tools/bin/armv7-rpi2-linux-gnueabihf-gcc -v
+      - run:
+          name: check armv8-rpi3-linux-gnueabihf
+          command: |
+            docker run -it --rm idein/cross-rpi:buster-crosstool-ng-1.24.0 /home/idein/x-tools/bin/armv8-rpi3-linux-gnueabihf-gcc -v
+  build_and_push_builder:
+    machine:
+      image: ubuntu-2004:current
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: docker login
+          command: |
+            echo $DOCKER_PASSWORD | docker login --password-stdin -u $DOCKER_USER
+      - run:
+          command: |
+            sudo apt-get update
+            sudo apt-get -y install binfmt-support qemu-user-static
+      - run:
+          command: |
+            docker buildx create --use
+            docker buildx build \
+              --push \
+              --platform linux/arm64,linux/amd64 \
+              --tag idein/cross-rpi:buster-crosstool-ng-1.24.0 .
+aliases:
+  filter-accept-all: &filter-accept-all
+    filters:
+      tags:
+        only: /.*/
+  filter-tags-only: &filter-tags-only
+    filters:
+      tags:
+        only: /.*/
+      branches:
+        ignore: /.*/
+
+workflows:
+  build_and_test_and_push:
+    jobs:
+      - build_toolchain:
+          <<: *filter-accept-all
+          matrix:
+            parameters:
+              resource_class: ["arm.large", "large"]
+              target: [
+                  "aarch64-rpi3-linux-gnuhf",
+                  "armv8-rpi3-linux-gnueabihf",
+                  "armv7-rpi2-linux-gnueabihf",
+                  "armv6-rpi-linux-gnueabihf",
+                ]
+      - build_and_test_builder:
+          <<: *filter-accept-all
+          requires:
+            - build_toolchain
+          matrix:
+            parameters:
+              resource_class: ["arm.medium", "medium"]
+      - build_and_push_builder:
+          context:
+            - docker-hub-creds
+          <<: *filter-tags-only
+          requires:
+            - build_and_test_builder
