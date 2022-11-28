@@ -85,7 +85,7 @@ jobs:
       - run:
           name: docker login
           command: |
-            echo $DOCKER_PASSWORD | docker login --password-stdin -u $DOCKER_USER
+            echo $DOCKER_PASS | docker login --password-stdin -u $DOCKER_USER
       - run:
           command: |
             sudo apt-get update
