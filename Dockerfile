@@ -2,7 +2,6 @@ FROM debian:buster-slim AS UNPACKER
 ARG TARGETARCH
 
 WORKDIR /tmp
-
 RUN apt-get update \
     && apt-get -y install xz-utils
 
@@ -79,9 +78,12 @@ COPY --from=UNPACKER /tmp/armv7-rpi2-linux-gnueabihf /home/idein/x-tools/
 COPY --from=UNPACKER /tmp/armv8-rpi3-linux-gnueabihf /home/idein/x-tools/
 COPY --from=UNPACKER /tmp/aarch64-rpi3-linux-gnuhf /home/idein/x-tools/
 
-ENV PATH $HOME/x-tools/armv6-rpi-linux-gnueabihf/bin:$PATH
-ENV PATH $HOME/x-tools/armv7-rpi2-linux-gnueabihf/bin:$PATH
-ENV PATH $HOME/x-tools/armv8-rpi3-linux-gnueabihf/bin:$PATH
-ENV PATH $HOME/x-tools/aarch64-rpi3-linux-gnuhf/bin:$PATH
+RUN sudo rm -r \
+    /home/idein/x-tools/armv6-rpi-linux-gnueabihf \
+    /home/idein/x-tools/armv7-rpi2-linux-gnueabihf \
+    /home/idein/x-tools/armv8-rpi3-linux-gnueabihf \
+    /home/idein/x-tools/aarch64-rpi3-linux-gnuhf
+
+ENV PATH $HOME/x-tools/bin:$PATH
 
 RUN echo "export PATH=$PATH" >> /home/idein/.bashrc
