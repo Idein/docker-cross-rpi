@@ -78,12 +78,6 @@ COPY --from=UNPACKER /tmp/armv7-rpi2-linux-gnueabihf /home/idein/x-tools/
 COPY --from=UNPACKER /tmp/armv8-rpi3-linux-gnueabihf /home/idein/x-tools/
 COPY --from=UNPACKER /tmp/aarch64-rpi3-linux-gnuhf /home/idein/x-tools/
 
-RUN sudo rm -r \
-    /home/idein/x-tools/armv6-rpi-linux-gnueabihf \
-    /home/idein/x-tools/armv7-rpi2-linux-gnueabihf \
-    /home/idein/x-tools/armv8-rpi3-linux-gnueabihf \
-    /home/idein/x-tools/aarch64-rpi3-linux-gnuhf
-
 ENV PATH $HOME/x-tools/bin:$PATH
 
 RUN echo "export PATH=$PATH" >> /home/idein/.bashrc
