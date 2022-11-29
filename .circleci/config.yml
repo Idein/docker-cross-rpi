@@ -85,7 +85,7 @@ jobs:
       - run:
           name: docker login
           command: |
-            echo $DOCKER_PASSWORD | docker login --password-stdin -u $DOCKER_USER
+            echo $DOCKER_PASS | docker login --password-stdin -u $DOCKER_USER
       - run:
           command: |
             sudo apt-get update
@@ -96,7 +96,8 @@ jobs:
             docker buildx build \
               --push \
               --platform linux/arm64,linux/amd64 \
-              --tag idein/cross-rpi:buster-crosstool-ng-1.24.0 .
+              --tag idein/cross-rpi:buster-crosstool-ng-1.24.0 \
+              --tag idein/cross-rpi:latest .
 aliases:
   filter-accept-all: &filter-accept-all
     filters:
