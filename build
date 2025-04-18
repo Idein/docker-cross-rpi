@@ -9,6 +9,31 @@ Options:
   --version IMAGE_VERSION  Specify the image version. Like '1.0.0'. (required if not in try mode)
   --verbose                Enable verbose output. (optional, default: false)
   -h, --help               Show this help message.
+
+Pre-requisites:
+
+  Setup 'multi-platform-builder' including amd64 and arm64 buildx nodes.
+
+  Example: On arm64 environment, run
+
+    docker context create node-amd64 --docker "host=ssh://<amd64 server>"
+    docker buildx create          --name multi-platform-builder desktop-linux --driver docker-container --platform linux/arm64
+    docker buildx create --append --name multi-platform-builder node-amd64    --driver docker-container --platform linux/amd64
+
+  Example: On amd64 environment, run
+
+    docker context create node-arm64 --docker "host=ssh://<arm64 server>"
+    docker buildx create          --name multi-platform-builder desktop-linux --driver docker-container --platform linux/amd64
+    docker buildx create --append --name multi-platform-builder node-arm64    --driver docker-container --platform linux/arm64
+
+Post-requisites:
+
+  After building, push the image to the registry, like
+
+    docker login
+    docker tag cross-rpi:<tag> idein/cross-rpi:<tag>
+    docker push idein/cross-rpi:<tag>
+
 EOF
 }
 
@@ -154,32 +179,19 @@ for TARGET_TRIPLET in "${TARGET_TRIPLETS[@]}"; do
         echo "warning: Running in try mode. The image build time is fixed to '$IMAGE_BUILT_AT'." >&2
     fi
     docker buildx build . \
-      --platform linux/${HOST_ARCH} --provenance false --load \
+      --builder multi-platform-builder \
+      --platform linux/amd64,linux/arm64 \
       --build-arg TARGET_TRIPLET=$TARGET_TRIPLET \
       --build-arg IMAGE_VERSION="$IMAGE_VERSION" \
       --build-arg IMAGE_VCS_REV="$IMAGE_VCS_REV" \
       --build-arg IMAGE_BUILT_AT="$IMAGE_BUILT_AT" \
-      -t "cross-rpi:${TAG_PREFIX}${TARGET_TRIPLET}-${HOST_ARCH}" \
+      -t "cross-rpi:${TAG_PREFIX}${TARGET_TRIPLET}" \
       --progress=$BUILD_PROGRESS
     if $TRY_RUN && $VERBOSE_RUN; then
-        docker inspect "cross-rpi:${TAG_PREFIX}${TARGET_TRIPLET}-${HOST_ARCH}"
+        docker inspect "cross-rpi:${TAG_PREFIX}${TARGET_TRIPLET}"
     fi
 done
 
 for TARGET_TRIPLET in "${TARGET_TRIPLETS[@]}"; do
-    echo "Image 'cross-rpi:${TAG_PREFIX}${TARGET_TRIPLET}-${HOST_ARCH}' built successfully."
+    echo "SUCCESS: cross-rpi:${TAG_PREFIX}${TARGET_TRIPLET}"
 done
-
-#
-# after building, push the image to the registry
-#
-# docker login
-# docker tag cross-rpi:${TARGET_TRIPLET}-amd64 idein/cross-rpi:${TARGET_TRIPLET}-amd64
-# docker tag cross-rpi:${TARGET_TRIPLET}-arm64 idein/cross-rpi:${TARGET_TRIPLET}-arm64
-# docker push idein/cross-rpi:${TARGET_TRIPLET}-amd64
-# docker push idein/cross-rpi:${TARGET_TRIPLET}-arm64
-# docker manifest create idein/cross-rpi:${TARGET_TRIPLET} \
-#   --amend idein/cross-rpi:${TARGET_TRIPLET}-amd64 \
-#   --amend idein/cross-rpi:${TARGET_TRIPLET}-arm64
-# docker manifest push idein/cross-rpi:${TARGET_TRIPLET}
-#
