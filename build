@@ -180,7 +180,7 @@ for TARGET_TRIPLET in "${TARGET_TRIPLETS[@]}"; do
     fi
     docker buildx build . \
       --builder multi-platform-builder \
-      --platform linux/amd64,linux/arm64 \
+      --platform linux/amd64,linux/arm64 --load \
       --build-arg TARGET_TRIPLET=$TARGET_TRIPLET \
       --build-arg IMAGE_VERSION="$IMAGE_VERSION" \
       --build-arg IMAGE_VCS_REV="$IMAGE_VCS_REV" \
