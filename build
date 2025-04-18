@@ -221,5 +221,9 @@ for TARGET_TRIPLET in "${TARGET_TRIPLETS[@]}"; do
 done
 
 for TARGET_TRIPLET in "${TARGET_TRIPLETS[@]}"; do
-    echo "SUCCESS: cross-rpi:${TAG_PREFIX}${TARGET_TRIPLET}"
+    if $DO_PUSH; then
+        echo "PUSHED: idein/cross-rpi:${TAG_PREFIX}${TARGET_TRIPLET}"
+    else
+        echo "LOADED: cross-rpi:${TAG_PREFIX}${TARGET_TRIPLET}"
+    fi
 done
