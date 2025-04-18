@@ -6,6 +6,7 @@ Usage: $0 [OPTIONS]
 
 Options:
   --try                    Run the script in try mode. (optional, default: false)
+  --push                   Push the image to the registry. (optional, default: false)
   --version IMAGE_VERSION  Specify the image version. Like '1.0.0'. (required if not in try mode)
   --verbose                Enable verbose output. (optional, default: false)
   -h, --help               Show this help message.
@@ -47,7 +48,7 @@ if [[ $(getopt --test > /dev/null 2>&1; echo $?) -ne 4 ]]; then
     exit 1
 fi
 
-PARSED_ARGS=$(getopt --options 'h' --longoptions 'help,try,version:,verbose' -- "$@")
+PARSED_ARGS=$(getopt --options 'h' --longoptions 'help,try,push,version:,verbose' -- "$@")
 if [[ $? -ne 0 ]]; then
     echo "error: Failed to parse arguments." >&2
     usage >&2
@@ -58,6 +59,7 @@ unset PARSED_ARGS
 
 TRY_RUN='false'
 VERBOSE_RUN='false'
+DO_PUSH='false'
 IMAGE_VERSION=''
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -67,6 +69,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --try)
             TRY_RUN='true'
+            shift
+            ;;
+        --push)
+            DO_PUSH='true'
             shift
             ;;
         --version)
@@ -88,8 +94,14 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 readonly TRY_RUN
+readonly DO_PUSH
 readonly VERBOSE_RUN
 
+if $DO_PUSH && $TRY_RUN; then
+    echo "error: --try and --push cannot be used together." >&2
+    usage >&2
+    exit 1
+fi
 
 if [[ -z "$IMAGE_VERSION" ]]; then
     if $TRY_RUN; then
@@ -161,9 +173,14 @@ get_host_arch() {
 
 HOST_ARCH=$(get_host_arch "$(uname -m)")
 
+ORG_PREFIX=''
+if $DO_PUSH; then
+    ORG_PREFIX='idein/'
+fi
 TAG_PREFIX=''
 if $TRY_RUN; then
     TAG_PREFIX='dont-push-'
+    echo "warning: Running in try mode. The image will not be pushed to the registry." >&2
     echo "warning: Running in try mode. The image tag is prefixed with '$TAG_PREFIX'." >&2
 fi
 BUILD_PROGRESS='tty'
@@ -178,15 +195,26 @@ for TARGET_TRIPLET in "${TARGET_TRIPLETS[@]}"; do
         IMAGE_BUILT_AT='1970-01-01T00:00:00Z'
         echo "warning: Running in try mode. The image build time is fixed to '$IMAGE_BUILT_AT'." >&2
     fi
-    docker buildx build . \
-      --builder multi-platform-builder \
-      --platform linux/amd64,linux/arm64 --load \
-      --build-arg TARGET_TRIPLET=$TARGET_TRIPLET \
-      --build-arg IMAGE_VERSION="$IMAGE_VERSION" \
-      --build-arg IMAGE_VCS_REV="$IMAGE_VCS_REV" \
-      --build-arg IMAGE_BUILT_AT="$IMAGE_BUILT_AT" \
-      -t "cross-rpi:${TAG_PREFIX}${TARGET_TRIPLET}" \
-      --progress=$BUILD_PROGRESS
+    if $DO_PUSH; then
+        docker buildx build . \
+          --build-arg TARGET_TRIPLET=$TARGET_TRIPLET \
+          --build-arg IMAGE_VERSION="$IMAGE_VERSION" \
+          --build-arg IMAGE_VCS_REV="$IMAGE_VCS_REV" \
+          --build-arg IMAGE_BUILT_AT="$IMAGE_BUILT_AT" \
+          --progress=$BUILD_PROGRESS \
+          --builder multi-platform-builder \
+          --platform linux/amd64,linux/arm64 --push \
+          -t "idein/cross-rpi:${TAG_PREFIX}${TARGET_TRIPLET}"
+    else
+        docker buildx build . \
+          --build-arg TARGET_TRIPLET=$TARGET_TRIPLET \
+          --build-arg IMAGE_VERSION="$IMAGE_VERSION" \
+          --build-arg IMAGE_VCS_REV="$IMAGE_VCS_REV" \
+          --build-arg IMAGE_BUILT_AT="$IMAGE_BUILT_AT" \
+          --progress=$BUILD_PROGRESS \
+          --platform linux/${HOST_ARCH} --load \
+          -t "cross-rpi:${TAG_PREFIX}${TARGET_TRIPLET}"
+    fi
     if $TRY_RUN && $VERBOSE_RUN; then
         docker inspect "cross-rpi:${TAG_PREFIX}${TARGET_TRIPLET}"
     fi
