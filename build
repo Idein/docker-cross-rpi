@@ -136,7 +136,7 @@ get_host_arch() {
 
 HOST_ARCH=$(get_host_arch "$(uname -m)")
 
-TAG_PREFIX='try1-'
+TAG_PREFIX=''
 if $TRY_RUN; then
     TAG_PREFIX='dont-push-'
     echo "warning: Running in try mode. The image tag is prefixed with '$TAG_PREFIX'." >&2
