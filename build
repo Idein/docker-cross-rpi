@@ -136,7 +136,7 @@ get_host_arch() {
 
 HOST_ARCH=$(get_host_arch "$(uname -m)")
 
-TAG_PREFIX='try0-'
+TAG_PREFIX='try1-'
 if $TRY_RUN; then
     TAG_PREFIX='dont-push-'
     echo "warning: Running in try mode. The image tag is prefixed with '$TAG_PREFIX'." >&2
@@ -154,7 +154,7 @@ for TARGET_ARCH in "${TARGET_ARCHS[@]}"; do
         echo "warning: Running in try mode. The image build time is fixed to '$IMAGE_BUILT_AT'." >&2
     fi
     docker buildx build . \
-      --platform linux/${HOST_ARCH} --load \
+      --platform linux/${HOST_ARCH} --provenance false --load \
       --build-arg TARGET_ARCH=$TARGET_ARCH \
       --build-arg IMAGE_VERSION="$IMAGE_VERSION" \
       --build-arg IMAGE_VCS_REV="$IMAGE_VCS_REV" \
