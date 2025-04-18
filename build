@@ -35,6 +35,16 @@ Post-requisites:
     docker tag cross-rpi:<tag> idein/cross-rpi:<tag>
     docker push idein/cross-rpi:<tag>
 
+Example:
+
+  For development
+
+    $0 --try
+
+  For release
+
+    $0 --push --version 1.0.0
+
 EOF
 }
 
